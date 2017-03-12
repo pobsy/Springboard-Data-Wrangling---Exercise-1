@@ -1,0 +1,110 @@
+---
+title: "Untitled"
+author: "Paddy"
+date: "4 March 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Data Wrangling - Exercise 1: Basic Data Manipulation
+
+In this exercise, you'll work with a toy data set showing product purchases from an electronics store. While the data set is small and simple, it still illustrates many of the challenges you have to address in real-world data wrangling!
+## Exerise 
+Using R, clean this data set to make it easier to visualize and analyze.
+
+```{r}
+library(readr)
+```
+
+
+### Problem 1
+**0: Load the data in RStudio**
+Save the data set as a CSV file called refine_original.csv and load it in RStudio into a data frame.
+
+```{r}
+refine <- read_csv("~/Springboard/Exercise problems/refine.csv")
+library(tidyr)
+library(dplyr)
+```
+
+
+### Problem 2
+**1: Clean up brand names**
+Clean up the 'company' column so all of the misspellings of the brand names are standardized. For example, you can transform the values in the column to be: philips, akzo, van houten and unilever (all lowercase).
+
+```{r}
+refine <- refine %>% mutate(company = ifelse(grepl("^phil|^fil|^phl", company, ignore.case = TRUE), "philips", company)) %>%
+       mutate(company = ifelse(grepl("^ak", company, ignore.case = TRUE), "akzo", company)) %>%
+       mutate(company = ifelse(grepl("^van", company, ignore.case = TRUE), "van_houten", company)) %>%
+       mutate(company = ifelse(grepl("^uni", company, ignore.case = TRUE), "unilever", company))
+```
+
+
+### Problem 3
+**2: Separate product code and number**
+Separate the product code and product number into separate columns i.e. add two new columns called product_code and product_number, containing the product code and number respectively.
+
+```{r}
+refine <- refine %>% separate(`Product code / number`, into=c("product_code", "Product_number"), sep = "-")
+
+```
+
+
+### Problem 4
+**3: Add product categories**
+You learn that the product codes actually represent the following product categories:
+p = Smartphone
+v = TV
+x = Laptop
+q = Tablet
+In order to make the data more readable, add a column with the product category for each record.
+
+```{r}
+ refine <- refine %>% mutate("product_category" = ifelse(product_code == "p", "Smartphone", "")) %>%
+  mutate("product_category" = ifelse(product_code == "x", "Laptop", product_category)) %>%
+  mutate("product_category" = ifelse(product_code == "v", "TV", product_category)) %>%
+  mutate("product_category" = ifelse(product_code == "q", "Tablet", product_category))
+```
+
+
+###Problem 5
+**4: Add full address for geocoding**
+You'd like to view the customer information on a map. In order to do that, the addresses need to be in a form that can be easily geocoded. Create a new column full_address that concatenates the three address fields (address, city, country), separated by commas.
+
+```{r}
+refine <- refine %>% unite(full_address, c(address, city, country), sep = ",")
+```
+
+
+### Problem 6
+**5: Create dummy variables for company and product category**
+Both the company name and product category are categorical variables i.e. they take only a fixed set of values. In order to use them in further analysis you need to create dummy variables. Create dummy binary variables for each of them with the prefix company_ and product_ i.e.,
+*Add four binary (1 or 0) columns for company: company_philips, company_akzo, company_van_houten and company_unilever.
+
+
+```{r}
+refine <- refine %>% mutate(company_philips = ifelse(company =="philips", 1, 0)) %>%
+  mutate(company_akzo = ifelse(company == "akzo", 1, 0)) %>%
+  mutate(company_van_houten = ifelse(company == "van_houten", 1, 0)) %>%
+  mutate(company_unilever = ifelse(company == "unilever", 1, 0))
+```
+
+*Add four binary (1 or 0) columns for product category: product_smartphone, product_tv, product_laptop and product_tablet.
+
+```{r}
+refine <- refine %>% mutate(product_smartphone = ifelse(product_category == "Smartphone", 1, 0)) %>%
+mutate(product_TV = ifelse(product_category == "TV", 1, 0)) %>%
+mutate(product_laptop = ifelse(product_category == "Laptop", 1, 0)) %>%
+mutate(product_tablet = ifelse(product_category == "Tablet", 1, 0))
+```
+Thank you.....
+Finish by saving the ammended file to "refinecomplete.csv"
+
+```{r}
+write.csv(refine, file = "refinecomplete.csv")
+```
+
+
